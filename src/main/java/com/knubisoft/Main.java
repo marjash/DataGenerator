@@ -15,23 +15,23 @@ import java.util.function.Supplier;
 
 public class Main {
     static Map<Class<?>, Supplier<Object>> generator = new LinkedHashMap<>();
+    static Randomizer randomizer = new Randomizer();
 
     static {
-        generator.put(Integer.class, () -> 1);
-        generator.put(Boolean.class, () -> true);
-        generator.put(String.class, () -> "Hello");
-        generator.put(Long.class, () -> 123456789);
-        generator.put(Float.class, () -> 123.0F);
-        generator.put(Double.class, () -> 123456789.0);
-        generator.put(LocalDate.class, () -> LocalDate.now());
-        generator.put(List.class, () -> Arrays.asList("hello, goodbye"));
+        generator.put(Integer.class, () -> randomizer.setRandomInt());
+        generator.put(Boolean.class, () -> randomizer.setRandomBoolean());
+        generator.put(String.class, () -> randomizer.setRandomString());
+        generator.put(Long.class, () -> randomizer.setRandomLong());
+        generator.put(Float.class, () -> randomizer.setRandomFloat());
+        generator.put(Double.class, () -> randomizer.serRandomDouble());
+        generator.put(LocalDate.class, () -> randomizer.setRandomDate());
     }
 
     public static void main(String[] args) {
-        Map<String, Integer> realObject = new LinkedHashMap<>();
+        Map<String, Integer> map = new LinkedHashMap<>();
         List<String> list = new ArrayList<>();
-//        LocalDate realObject = LocalDate.parse("2014-04-28");
-        Object o = create(new GenericClass<>(list) {
+        LocalDate date = LocalDate.parse("2014-04-28");
+        Object o = create(new GenericClass<>(date) {
         }.getType());
         System.out.println(o);
 
@@ -53,8 +53,9 @@ public class Main {
                 }
                 if (Map.class.isAssignableFrom((Class<?>) rawType)){
                     Map<Object, Object> result = new LinkedHashMap<>();
+                    Type[] typeArgs = ((ParameterizedType) types[0]).getActualTypeArguments();
                     for (int index = 0; index < 5; index++)
-                        result.put(populate(types[0]), populate(types[1]));
+                        result.put(populate(typeArgs[0]), populate(typeArgs[1]));
                     return result;
                 }
 
@@ -77,11 +78,6 @@ public class Main {
     private static <T> Type[] nestedTypes(Type typeRef) {
         return typeRef instanceof ParameterizedType ?
                 ((ParameterizedType) typeRef).getActualTypeArguments() : new Type[]{typeRef};
-    }
-
-    private static Type unpackGenericClass(Type type) {
-        ParameterizedType params = (ParameterizedType) type;
-        return params.getRawType().equals(GenericClass.class) ? params.getActualTypeArguments()[0] : type;
     }
 
     public static Object create(Type type) {
