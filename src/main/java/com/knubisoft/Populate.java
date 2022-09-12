@@ -8,10 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class Populate {
@@ -48,22 +45,31 @@ public class Populate {
                 if (Map.class.isAssignableFrom((Class<?>) rawType)) {
                     return getMap(type);
                 }
+                if (Set.class.isAssignableFrom((Class<?>) rawType)){
+                    return getSet(type);
+                }
+                if (Queue.class.isAssignableFrom((Class<?>) rawType)){
+                    return getQueue(type);
+                }
             }
         }
         return getCustomClassInstance(type);
     }
 
-    @SneakyThrows
-    private Object getCustomClassInstance(Type type){
-        Constructor<?> constructor = ((Class<?>) type).getConstructor();
-        Object o = constructor.newInstance();
+    private Object getQueue(Type type) {
+        Type[] types = nestedTypes(type);
+        Queue<Object> result = new PriorityQueue<>();
+        for (int index = 0; index < 5; index++)
+            result.add(create(types[0]));
+        return result;
+    }
 
-        Field[] fields = ((Class) type).getDeclaredFields();
-        for (Field f : fields) {
-            f.setAccessible(true);
-            f.set(o, create(f.getGenericType()));
-        }
-        return o;
+    private Object getSet(Type type) {
+        Type[] types = nestedTypes(type);
+        Set<Object> result = new HashSet<>();
+        for (int index = 0; index < 5; index++)
+            result.add(create(types[0]));
+        return result;
     }
 
 
@@ -83,8 +89,22 @@ public class Populate {
         return result;
     }
 
+    @SneakyThrows
+    private Object getCustomClassInstance(Type type){
+        Constructor<?> constructor = ((Class<?>) type).getConstructor();
+        Object o = constructor.newInstance();
+
+        Field[] fields = ((Class) type).getDeclaredFields();
+        for (Field f : fields) {
+            f.setAccessible(true);
+            f.set(o, create(f.getGenericType()));
+        }
+        return o;
+    }
+
     private boolean isCollection(Class<?> x) {
-        return List.class.isAssignableFrom(x) || Map.class.isAssignableFrom(x);
+        return List.class.isAssignableFrom(x) || Map.class.isAssignableFrom(x)
+                || Set.class.isAssignableFrom(x) || Queue.class.isAssignableFrom(x);
     }
 
     private boolean isSimpleType(Type type) {
