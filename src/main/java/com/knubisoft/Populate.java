@@ -11,6 +11,9 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Supplier;
 
+/**
+ * Getting objects using reflection
+ */
 public class Populate {
 
     static Map<Class<?>, Supplier<Object>> generator = new LinkedHashMap<>();
@@ -32,6 +35,11 @@ public class Populate {
         generator.put(double.class, () -> randomizer.serRandomDouble());
     }
 
+    /**
+     * Creates object
+     * @param type Type of object
+     * @return An object of the specified type
+     */
     @SneakyThrows
     public Object create(Type type) {
         if (isSimpleType(type))
@@ -56,6 +64,11 @@ public class Populate {
         return getCustomClassInstance(type);
     }
 
+    /**
+     * Returns Queue
+     * @param type Type of object
+     * @return Queue
+     */
     private Object getQueue(Type type) {
         Type[] types = nestedTypes(type);
         Queue<Object> result = new PriorityQueue<>();
@@ -64,6 +77,11 @@ public class Populate {
         return result;
     }
 
+    /**
+     * Returns Set
+     * @param type Type of object
+     * @return Set
+     */
     private Object getSet(Type type) {
         Type[] types = nestedTypes(type);
         Set<Object> result = new HashSet<>();
@@ -73,6 +91,11 @@ public class Populate {
     }
 
 
+    /**
+     * Returns List
+     * @param type Type of object
+     * @return List
+     */
     private List<Object> getList(Type type) {
         Type[] types = nestedTypes(type);
         List<Object> result = new ArrayList<>();
@@ -81,6 +104,11 @@ public class Populate {
         return result;
     }
 
+    /**
+     * Returns Map
+     * @param type Type of object
+     * @return Map
+     */
     private  Map<Object, Object> getMap(Type type) {
         Map<Object, Object> result = new LinkedHashMap<>();
         Type[] typeArgs = ((ParameterizedType) type).getActualTypeArguments();
@@ -89,6 +117,11 @@ public class Populate {
         return result;
     }
 
+    /**
+     * Returns customer class instance
+     * @param type Type of object
+     * @return Customer class instance
+     */
     @SneakyThrows
     private Object getCustomClassInstance(Type type){
         Constructor<?> constructor = ((Class<?>) type).getConstructor();
@@ -102,21 +135,42 @@ public class Populate {
         return o;
     }
 
+    /**
+     * Checks if class is a collection
+     * @param x Class to check
+     * @return True if class is a collection
+     */
     private boolean isCollection(Class<?> x) {
         return List.class.isAssignableFrom(x) || Map.class.isAssignableFrom(x)
                 || Set.class.isAssignableFrom(x) || Queue.class.isAssignableFrom(x);
     }
 
+    /**
+     * Checks if object is a simple type
+     * @param type Object
+     * @return True if object is a simple type
+     */
     private boolean isSimpleType(Type type) {
         return generator.containsKey(type);
     }
 
+    /**
+     * Unpack generic class
+     * @param type Type of object
+     * @return Unpacked generic class
+     */
     public Type unpackGenericClass(Type type) {
         ParameterizedType parameterizedType = (ParameterizedType) type;
         return parameterizedType.getRawType().equals(GenericClass.class) ?
                 parameterizedType.getActualTypeArguments()[0] : type;
     }
 
+    /**
+     * Returns nested types
+     * @param typeRef Type of object
+     * @param <T>
+     * @return Nested type
+     */
     private static <T> Type[] nestedTypes(Type typeRef) {
         return typeRef instanceof ParameterizedType ?
                 ((ParameterizedType) typeRef).getActualTypeArguments() : new Type[]{typeRef};
