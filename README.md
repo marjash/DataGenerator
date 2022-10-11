@@ -1,6 +1,6 @@
 # About
 
-This progect creates random objects using reflaection
+This progect creates random objects using reflection
 
 ## Usage
 
